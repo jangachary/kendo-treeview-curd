@@ -37,7 +37,7 @@
         </div>
       </div>
     </div>
-
+    <ul id="context-menu"></ul>
     <link
       href="https://kendo.cdn.telerik.com/2020.2.617/styles/kendo.common.min.css"
       rel="stylesheet"
@@ -106,21 +106,18 @@
         const getSelected = $("#getSelected");
 
         getSelected.click(() => {
-          debugger;
           let selected = treeView.select();
           selectedDIData = treeView.dataItem(selected);
           dataView.val(JSON.stringify(selectedDIData, undefined, 4));
         });
 
         removeSelected.click(() => {
-          debugger;
           let selected = treeView.select();
           selectedDIData = treeView.dataItem(selected);
           ds.remove(selectedDIData);
         });
 
         updateSelected.click(() => {
-          debugger;
           let selected = treeView.select();
           selectedDIData = treeView.dataItem(selected);
           selectedDIData.text = $("#newName").val();
@@ -128,7 +125,6 @@
         });
 
         getData.click(() => {
-          debugger;
           // console.log();
           console.log(ds);
           // const tv = $("#treeview-kendo").data("kendoTreeView");
@@ -138,7 +134,6 @@
 
         addNewItem.click(() => {
           console.log(treeView);
-          debugger;
           let ranId = getRandom();
           treeView.append({
             id: ranId,
@@ -157,6 +152,27 @@
           .data("kendoTreeView");
         //window.ds = ds;
         window.treeView = treeView;
+
+        $("#context-menu").kendoContextMenu({
+          target: "#treeview-kendo",
+          open: (e) => {
+            console.log("menu open ", e);
+          },
+          select: (e) => {
+            console.log("menu select ", e);
+            let opt = $(e.item);
+            opt.text();
+          },
+          dataSource: [
+            {
+              text: "myInfo",
+              items: [{ text: ":)" }]
+            },
+            {
+              text: "remove"
+            }
+          ]
+        });
       });
       function getRandom() {
         return Math.floor(Math.random() * (10 - 1) + 1);
@@ -171,7 +187,6 @@
                   data: "items",
                   model: {
                     function(e) {
-                      debugger;
                       console.log("child", e);
                       return { data: e.items };
                     }
