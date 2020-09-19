@@ -12,13 +12,28 @@
     <div class="container">
       <div class="row">
         <div class="col-sm">
-          <button class="btn btn-primary">test</button>
+          <button id="addNewItem" class="btn btn-primary">Add New Item</button>
+          <button id="removeSelected" class="btn btn-danger" type="button">
+            remove selected
+          </button>
+          <div class="form-inline">
+            <div class="form-group mb-2">
+              <label for="newName" class="sr-only">Email</label>
+              <input type="text" class="form-control" id="newName" />
+            </div>
+
+            <button id="updateSelected" class="btn btn-primary" type="button">
+              update selected
+            </button>
+          </div>
         </div>
         <div class="col-sm">
           <div id="treeview-kendo"></div>
         </div>
         <div class="col-sm">
-          <textarea id="data" class="form-control"></textarea>
+          <button id="getData" class="btn btn-success">get All</button>
+          <button id="getSelected" class="btn btn-success">get selected</button>
+          <textarea id="dataView" class="form-control"></textarea>
         </div>
       </div>
     </div>
@@ -37,18 +52,36 @@
 
     <script defer>
       $(document).ready(() => {
+        var treeView;
         var data = [
           {
+            id: 2,
+            text: "hello",
+            items: [{ id: 55, text: "hhh" }]
+          },
+          {
             id: 1,
-            text: "My Documents",
+            text: "One",
             items: [
               {
                 id: 2,
-                text: "Kendo UI Project",
+                text: "Two",
                 items: [
-                  { id: 3, text: "about.html" },
-                  { id: 4, text: "index.html" },
-                  { id: 5, text: "logo.png" }
+                  { id: 3, text: "2-1" },
+                  { id: 4, text: "2-2" },
+                  {
+                    id: 5,
+                    text: "2-3",
+                    items: [
+                      { id: 7, text: "2-3-1" },
+                      { id: 8, text: "2-3-2" },
+                      {
+                        id: 9,
+                        text: "2-3-3",
+                        items: []
+                      }
+                    ]
+                  }
                 ]
               },
               {
@@ -63,15 +96,93 @@
             ]
           }
         ];
-        console.log("am ready");
-        $("#treeview-kendo").kendoTreeView({
-          // template: kendo.template($("#treeview").html()),
-          dataSource: data,
-          dragAndDrop: true,
 
-          loadOnDemand: true
+        console.log("am ready");
+        const dataView = $("#dataView");
+        const addNewItem = $("#addNewItem");
+        const getData = $("#getData");
+        const updateSelected = $("#updateSelected");
+        const removeSelected = $("#removeSelected");
+        const getSelected = $("#getSelected");
+
+        getSelected.click(() => {
+          debugger;
+          let selected = treeView.select();
+          selectedDIData = treeView.dataItem(selected);
+          dataView.val(JSON.stringify(selectedDIData, undefined, 4));
         });
+
+        removeSelected.click(() => {
+          debugger;
+          let selected = treeView.select();
+          selectedDIData = treeView.dataItem(selected);
+          ds.remove(selectedDIData);
+        });
+
+        updateSelected.click(() => {
+          debugger;
+          let selected = treeView.select();
+          selectedDIData = treeView.dataItem(selected);
+          selectedDIData.text = $("#newName").val();
+          ds.pushUpdate(selectedDIData);
+        });
+
+        getData.click(() => {
+          debugger;
+          // console.log();
+          console.log(ds);
+          // const tv = $("#treeview-kendo").data("kendoTreeView");
+          // let xxx = tv.dataSource.data()[0].children.options.data;
+          dataView.val(JSON.stringify(ds.data(), undefined, 4));
+        });
+
+        addNewItem.click(() => {
+          console.log(treeView);
+          debugger;
+          let ranId = getRandom();
+          treeView.append({
+            id: ranId,
+            text: `Me ${ranId}`,
+            items: [{ text: ranId }]
+          });
+        });
+        var ds = prepareDataSource(data);
+        treeView = $("#treeview-kendo")
+          .kendoTreeView({
+            // template: kendo.template($("#treeview").html()),
+            dataSource: ds,
+            dragAndDrop: true,
+            loadOnDemand: true
+          })
+          .data("kendoTreeView");
+        //window.ds = ds;
+        window.treeView = treeView;
       });
+      function getRandom() {
+        return Math.floor(Math.random() * (10 - 1) + 1);
+      }
+      function prepareDataSource(data) {
+        var datasource = new kendo.data.HierarchicalDataSource({
+          data: data,
+          schema: {
+            model: {
+              children: {
+                schema: {
+                  data: "items",
+                  model: {
+                    function(e) {
+                      debugger;
+                      console.log("child", e);
+                      return { data: e.items };
+                    }
+                  }
+                }
+              }
+            }
+          }
+        });
+        return datasource;
+      }
     </script>
   </body>
 </html>

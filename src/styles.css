@@ -3,5 +3,5 @@ body {
 }
 textarea {
   resize: none;
-  height: 400px;
+  height: 400px !important;
 }
