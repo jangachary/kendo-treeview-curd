@@ -16,6 +16,14 @@
           <button id="removeSelected" class="btn btn-danger" type="button">
             remove selected
           </button>
+
+          <button
+            id="duplicateSelected"
+            class="btn btn-secondary"
+            type="button"
+          >
+            duplicate selected
+          </button>
           <div class="form-inline">
             <div class="form-group mb-2">
               <label for="newName" class="sr-only">Email</label>
@@ -33,6 +41,7 @@
         <div class="col-sm">
           <button id="getData" class="btn btn-success">get All</button>
           <button id="getSelected" class="btn btn-success">get selected</button>
+          <button id="updateThis" class="btn btn-success">update this</button>
           <textarea id="dataView" class="form-control"></textarea>
         </div>
       </div>
@@ -104,6 +113,32 @@
         const updateSelected = $("#updateSelected");
         const removeSelected = $("#removeSelected");
         const getSelected = $("#getSelected");
+        const duplicateSelected = $("#duplicateSelected");
+        const updateThis = $("#updateThis");
+
+        updateThis.click(() => {
+          debugger;
+          // work in progress
+          let updatedData = JSON.parse(dataView.val());
+          let selected = treeView.select();
+        });
+
+        duplicateSelected.click(() => {
+          let selected = treeView.select();
+          selectedDIData = treeView.dataItem(selected);
+          var item = selectedDIData.toJSON();
+          item.hasChildren = true;
+          let newItem = treeView.insertAfter(item, selected, function (e) {
+            var dataItem = treeView.dataItem(e);
+            load
+              .bind(treeView)(treeView.dataItem(e))
+              .then(function () {
+                updateIds(dataItem);
+              });
+          });
+          treeView.select(newItem);
+          treeView.expand(newItem);
+        });
 
         getSelected.click(() => {
           let selected = treeView.select();
@@ -125,13 +160,9 @@
         });
 
         getData.click(() => {
-          // console.log();
           console.log(ds);
-          // const tv = $("#treeview-kendo").data("kendoTreeView");
-          // let xxx = tv.dataSource.data()[0].children.options.data;
           dataView.val(JSON.stringify(ds.data(), undefined, 4));
         });
-
         addNewItem.click(() => {
           console.log(treeView);
           let ranId = getRandom();
@@ -147,10 +178,10 @@
             // template: kendo.template($("#treeview").html()),
             dataSource: ds,
             dragAndDrop: true,
-            loadOnDemand: true
+            loadOnDemand: false
           })
           .data("kendoTreeView");
-        //window.ds = ds;
+        window.ds = ds;
         window.treeView = treeView;
 
         $("#context-menu").kendoContextMenu({
@@ -198,6 +229,37 @@
         });
         return datasource;
       }
+
+      var updateIds = function (dataItem) {
+        dataItem.id = kendo.guid();
+        if (dataItem.items) {
+          dataItem.items.forEach(function (child) {
+            updateIds(child);
+          });
+        }
+      };
+      var load = function (item) {
+        var that = this,
+          chain = $.Deferred().resolve();
+        chain = chain
+          .then(function () {
+            return item.load();
+          })
+          .then(function () {
+            if (item.hasChildren) {
+              var childrenChain = $.Deferred().resolve();
+              item.children.data().forEach(function (child) {
+                (function (child) {
+                  childrenChain = childrenChain.then(function () {
+                    return load(child);
+                  });
+                })(child);
+              });
+              return childrenChain;
+            }
+          });
+        return chain;
+      };
     </script>
   </body>
 </html>
